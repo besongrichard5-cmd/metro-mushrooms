@@ -28,7 +28,12 @@ export async function GET(req) {
   try {
     await dbConnect();
     
-    // Fetch all orders (You'd usually want to protect this for admin only, or filter by user ID)
+    // Protect this route for admin only
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.email !== 'opararichard47@gmail.com') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const orders = await Order.find({}).sort({ createdAt: -1 });
 
     return NextResponse.json({ success: true, orders }, { status: 200 });

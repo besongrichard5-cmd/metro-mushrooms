@@ -1,20 +1,41 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { PRODUCTS } from '@/constants/data';
+import { PRODUCTS as STATIC_PRODUCTS } from '@/constants/data';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const categories = useMemo(() => {
-    const cats = ["All", ...new Set(PRODUCTS.map(p => p.category))];
-    return cats;
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          setProducts(data.products.length > 0 ? data.products : STATIC_PRODUCTS);
+        } else {
+          setProducts(STATIC_PRODUCTS);
+        }
+      } catch (error) {
+        setProducts(STATIC_PRODUCTS);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
   }, []);
 
+  const categories = useMemo(() => {
+    const cats = ["All", ...new Set(products.map(p => p.category))];
+    return cats;
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === "All") return PRODUCTS;
-    return PRODUCTS.filter(p => p.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === "All") return products;
+    return products.filter(p => p.category === selectedCategory);
+  }, [selectedCategory, products]);
 
   return (
     <main style={{ backgroundColor: '#000', minHeight: '100dvh', color: 'white' }}>
@@ -69,20 +90,26 @@ export default function Shop() {
           </div>
 
           {/* Product Grid */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-            gap: '35px' 
-          }}>
-            {filteredProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '100px', color: '#bdc3c7' }}>
+              <p style={{ fontSize: '1.5rem' }}>Loading products...</p>
+            </div>
+          ) : (
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+              gap: '35px' 
+            }}>
+              {filteredProducts.map(product => (
+                <ProductCard
+                  key={product._id || product.id}
+                  product={product}
+                />
+              ))}
+            </div>
+          )}
 
-          {filteredProducts.length === 0 && (
+          {!loading && filteredProducts.length === 0 && (
             <div style={{ textAlign: 'center', padding: '100px', color: '#bdc3c7' }}>
               <p style={{ fontSize: '1.5rem' }}>No products found in this category.</p>
             </div>

@@ -1,9 +1,30 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { PRODUCTS, POSTS } from '@/constants/data';
+import { PRODUCTS as STATIC_PRODUCTS, POSTS } from '@/constants/data';
 
 export default function Home() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          setProducts(data.products.length > 0 ? data.products : STATIC_PRODUCTS);
+        } else {
+          setProducts(STATIC_PRODUCTS);
+        }
+      } catch (error) {
+        setProducts(STATIC_PRODUCTS);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
   return (
     <main style={{ backgroundColor: '#000', minHeight: '100dvh' }}>
       {/* --- HERO SECTION --- */}
@@ -57,9 +78,13 @@ export default function Home() {
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px' }}>
-            {PRODUCTS.slice(0, 3).map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            {loading ? (
+              <p style={{ color: '#bdc3c7', textAlign: 'center', width: '100%' }}>Loading products...</p>
+            ) : (
+              products.slice(0, 3).map(product => (
+                <ProductCard key={product._id || product.id} product={product} />
+              ))
+            )}
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '50px' }}>

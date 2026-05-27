@@ -154,6 +154,11 @@ export default function Navbar() {
                 minWidth: '150px',
                 zIndex: 200
               }}>
+                {currentUser.email === 'opararichard47@gmail.com' && (
+                  <Link href="/admin" style={{ color: '#e74c3c', fontWeight: 'bold', textDecoration: 'none', padding: '5px 10px', fontSize: '0.95rem' }}>
+                    Admin Panel
+                  </Link>
+                )}
                 <Link href="/profile" style={{ color: '#333', textDecoration: 'none', padding: '5px 10px', fontSize: '0.95rem' }}>
                   My Profile
                 </Link>

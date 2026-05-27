@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { PRODUCTS } from '@/constants/data';
+import React, { useState, useEffect } from 'react';
+import { PRODUCTS as STATIC_PRODUCTS } from '@/constants/data';
 import { useParams } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 
@@ -9,13 +9,47 @@ export default function ProductDetail() {
   const slug = params.slug;
   const { addToCart } = useCart();
 
-  // Find product by slug (convert name to slug format)
-  const product = PRODUCTS.find(p => p.name.toLowerCase().replace(/\s+/g, '-') === slug);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          const pList = data.products.length > 0 ? data.products : STATIC_PRODUCTS;
+          setProduct(pList.find(p => p.name.toLowerCase().replace(/\s+/g, '-') === slug));
+        } else {
+          setProduct(STATIC_PRODUCTS.find(p => p.name.toLowerCase().replace(/\s+/g, '-') === slug));
+        }
+      } catch (error) {
+        setProduct(STATIC_PRODUCTS.find(p => p.name.toLowerCase().replace(/\s+/g, '-') === slug));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [slug]);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [selectedAmount, setSelectedAmount] = useState(product?.options?.[0]?.amount || '');
+  const [selectedAmount, setSelectedAmount] = useState('');
+
+  useEffect(() => {
+    if (product) {
+      setSelectedAmount(product.options?.[0]?.amount || '');
+    }
+  }, [product]);
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
+
+  if (loading) {
+    return (
+      <main style={{ backgroundColor: '#000', minHeight: '100dvh', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <h1>Loading...</h1>
+      </main>
+    );
+  }
 
   if (!product) {
     return (

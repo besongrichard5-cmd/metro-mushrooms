@@ -43,7 +43,15 @@ export default function CartPage() {
           zipCode: formData.zipCode,
           country: formData.country,
         },
-        items: cartItems,
+        // --- FIXED DATA MAPPING HERE ---
+        items: cartItems.map((item) => ({
+          id: item._id || item.id, // Maps MongoDB's _id or item.id safely to 'id'
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image || '',
+          selectedFlavor: item.selectedFlavor || ''
+        })),
         totalAmount: totalPrice
       };
 

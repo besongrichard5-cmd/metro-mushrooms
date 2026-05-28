@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 
 const OrderItemSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  name: { type: String, required: true },
+id: { type: String }, // Required rule removed!
   price: { type: Number, required: true },
   quantity: { type: Number, required: true },
   image: { type: String },
